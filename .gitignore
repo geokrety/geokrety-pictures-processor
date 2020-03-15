@@ -1,0 +1,34 @@
+*~
+*.swp
+*.swo
+.svn
+.well-known
+*.dont-push.*
+.idea/
+*.iml
+.project
+.buildpath
+.settings
+.php_cs.cache
+# generated
+docker-compose-windows.yml
+vars
+docker-compose.dev.yml
+git-version
+.php_cs.cache
+.project
+*.iml
+vars/
+# please use 'composer install' to generate vendor/
+vendor/
+
+# mapped data directories
+db_data/
+website/templates/
+minio_data/
+
+execution.log
+
+jq-linux64
+jq-win64.exe
+

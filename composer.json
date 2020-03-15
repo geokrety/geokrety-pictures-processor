@@ -1,0 +1,9 @@
+{
+  "require": {
+    "aws/aws-sdk-php": "^3.133",
+    "ext-imagick": "*"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.16"
+  }
+}
