@@ -1,0 +1,15 @@
+ARG BASE_IMAGE=geokrety/website-legacy-base
+ARG BASE_TAG=latest
+FROM ${BASE_IMAGE}:${BASE_TAG}
+
+LABEL maintainer="GeoKrety Team <contact@geokrety.org>"
+WORKDIR /var/www/geokrety
+
+ENTRYPOINT ["/geokrety-entrypoint.sh"]
+CMD ["apache2-foreground"]
+
+COPY docker/files/ /
+COPY --chown=www-data:www-data composer.json /var/www/geokrety/composer.json
+COPY --chown=www-data:www-data composer.lock /var/www/geokrety/composer.lock
+RUN composer install --no-scripts --no-dev --no-autoloader --no-interaction
+COPY downloader/public /var/www/geokrety/website/public

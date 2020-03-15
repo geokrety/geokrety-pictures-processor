@@ -1,0 +1,12 @@
+{
+  "require": {
+    "ext-imagick": "*",
+    "ext-json": "*",
+    "ext-simplexml": "*",
+    "aws/aws-sdk-php": "^3.133",
+    "bcosca/fatfree": "^3.7"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.16"
+  }
+}
