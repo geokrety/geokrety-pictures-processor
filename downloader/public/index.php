@@ -102,7 +102,7 @@ function fileUploaded(\Base $f3) {
         $ch = curl_init(sprintf('http://website/geokrety/avatar/%s/drop-s3-file-signature', $keyDest));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
-        $result = curl_exec($ch);
+        curl_exec($ch);
         Sentry\captureException($exception);
 
         return;
