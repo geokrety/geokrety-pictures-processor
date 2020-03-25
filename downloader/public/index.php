@@ -10,21 +10,34 @@ define('GK_MINIO_SERVER_URL', getenv('GK_MINIO_SERVER_URL') ?: 'http://minio:900
 define('GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY', getenv('GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY') ?: null);
 define('GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY', getenv('GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY') ?: null);
 define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER') ?: null);
+define('GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST', getenv('GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST') ?: '');
 
 define('GK_BUCKET_NAME_GEOKRETY_AVATARS', getenv('GK_BUCKET_NAME_GEOKRETY_AVATARS') ?: 'gk-avatars');
+define('GK_BUCKET_NAME_USERS_AVATARS', getenv('GK_BUCKET_NAME_USERS_AVATARS') ?: 'users-avatars');
+define('GK_BUCKET_NAME_MOVES_PICTURES', getenv('GK_BUCKET_NAME_MOVES_PICTURES') ?: 'moves-pictures');
 define('GK_BUCKET_NAME_PICTURES_PROCESSOR_UPLOADER', getenv('GK_BUCKET_NAME_PICTURES_PROCESSOR_UPLOADER') ?: 'pictures-processor-uploader');
 
-define('GK_PP_TMP_DIR', getenv('GK_PP_TMP_DIR') ?: '/tmp/gk-pictures-processor-tmp');
+define('GK_PP_TMP_DIR', getenv('GK_PP_TMP_DIR') ?: '/tmp');
 define('GK_PP_MAX_DIMENSIONS', getenv('GK_PP_MAX_DIMENSIONS') ?: 1024);
 define('GK_PP_THUMBNAILS_DIMENSIONS', getenv('GK_PP_THUMBNAILS_DIMENSIONS') ?: 200);
 define('GK_BUCKET_THUMBNAIL_SUFFIX', getenv('GK_BUCKET_THUMBNAIL_SUFFIX') ?: '-thumbnails');
 
+// SENTRY CONFIG
+define('SENTRY_DSN', getenv('SENTRY_DSN') ?: null);
+Sentry\init(['dsn' => SENTRY_DSN]);
+
 $hasThumbnails = [
     GK_BUCKET_NAME_GEOKRETY_AVATARS,
+    GK_BUCKET_NAME_USERS_AVATARS,
+    GK_BUCKET_NAME_MOVES_PICTURES,
 ];
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
+
+// TODO: Add some checks on uploaded file
+// examples: https://security.stackexchange.com/questions/8587/how-can-i-be-protected-from-pictures-vulnerabilities/8625#8625
+//           https://security.stackexchange.com/questions/235/what-steps-should-be-taken-to-validate-user-uploaded-images-within-an-applicatio/3016#3016
 
 function fileUploaded(\Base $f3) {
     global $hasThumbnails;
@@ -51,14 +64,12 @@ function fileUploaded(\Base $f3) {
     //file_put_contents('/tmp/logs', sprintf('curl -v http://pictures-processor-downloader/file-uploaded -d \'%s\' -H \'Content-Type: application/json\'', $app->request->getRawBody()));
 
     $body = json_decode($f3->get('BODY'), true);
-    print_r($f3->get('BODY'));
-    if ($body['EventName'] !== 's3:ObjectCreated:Put') {
-        echo 'COUCOU'.$body['EventName']."\n";
-
+    if (!in_array($body['EventName'], ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'])) {
         return;
     }
 
     list($bucket, $key) = explode('/', $body['Key'], 2);
+    list($bucketDest, $keyDest) = explode('/', $key, 2);
     $imgPath = tempnam(GK_PP_TMP_DIR, $key);
 
     try {
@@ -68,7 +79,8 @@ function fileUploaded(\Base $f3) {
             'SaveAs' => $imgPath,
         ]);
     } catch (S3Exception $exception) {
-//            $app->response->setStatusCode(404, 'Not Found')->sendHeaders();
+        Sentry\captureException($exception);
+        http_response_code(404);
         echo 'File not found!';
 
         return;
@@ -76,11 +88,29 @@ function fileUploaded(\Base $f3) {
 
     // Read the downloaded image
     $image = new Imagick();
-    $image->readImage($imgPath);
+    try {
+        $image->readImage($imgPath);
+    } catch (ImagickException $exception) {
+        http_response_code(400);
+        unlink($imgPath);
+//        Keep file for post-mortem analysis
+//        $s3->deleteObject([
+//            'Bucket' => $bucket,
+//            'Key' => $key,
+//        ]);
+        // TODO call API to remove entry in database
+        $ch = curl_init(sprintf('http://website/geokrety/avatar/%s/drop-s3-file-signature', $keyDest));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
+        $result = curl_exec($ch);
+        Sentry\captureException($exception);
+
+        return;
+    }
     unlink($imgPath);
     $origImage = clone $image;
     autoRotateImage($image);
-    $image->setImageFormat('ppm');
+    $image->setImageFormat('bmp');
 
     // Resize the image to maximum allowed value
     resizeToMax($image, GK_PP_MAX_DIMENSIONS);
@@ -93,10 +123,9 @@ function fileUploaded(\Base $f3) {
         'Body' => $image->getImageBlob(),
         'Bucket' => GK_BUCKET_NAME_PICTURES_PROCESSOR_UPLOADER,
         'Key' => $key,
-        'ContentType' => 'image/x-portable-anymap',
+        'ContentType' => 'image/bmp',
     ]);
 
-    list($bucketDest, $keyDest) = explode('/', $key, 2);
     // Create thumbnail
     if (in_array($bucketDest, $hasThumbnails)) {
         $bucketThumbnail = sprintf('%s%s', $bucketDest, GK_BUCKET_THUMBNAIL_SUFFIX);
@@ -105,7 +134,7 @@ function fileUploaded(\Base $f3) {
             'Body' => $image->getImageBlob(),
             'Bucket' => GK_BUCKET_NAME_PICTURES_PROCESSOR_UPLOADER,
             'Key' => sprintf('%s/%s', $bucketThumbnail, $keyDest),
-            'ContentType' => 'image/x-portable-anymap',
+            'ContentType' => 'image/bmp',
         ]);
     }
 

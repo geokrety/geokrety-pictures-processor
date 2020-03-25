@@ -11,8 +11,12 @@ define('MINIO_ACCESS_KEY', getenv('MINIO_ACCESS_KEY') ?: null);
 define('MINIO_SECRET_KEY', getenv('MINIO_SECRET_KEY') ?: null);
 
 define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER') ?: null);
-define('GK_PP_TMP_DIR', getenv('GK_PP_TMP_DIR') ?: '/tmp/gk-pictures-processor-tmp');
+define('GK_PP_TMP_DIR', getenv('GK_PP_TMP_DIR') ?: '/tmp');
 define('GK_BUCKET_GEOKRETY_AVATARS_CACHE_CONTROL', getenv('GK_BUCKET_GEOKRETY_AVATARS_CACHE_CONTROL') ?: 600);
+
+// SENTRY CONFIG
+define('SENTRY_DSN', getenv('SENTRY_DSN') ?: null);
+Sentry\init(['dsn' => SENTRY_DSN]);
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
@@ -24,8 +28,8 @@ function fileUploaded(\Base $f3) {
         die();
     }
 
-    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
-    file_put_contents('/tmp/body', $f3->get('BODY'));
+//    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
+//    file_put_contents('/tmp/body', $f3->get('BODY'));
 
     $s3 = new AWSS3Client([
         'version' => 'latest',
@@ -53,7 +57,8 @@ function fileUploaded(\Base $f3) {
             'SaveAs' => $imgPath,
         ]);
     } catch (S3Exception $exception) {
-//        $app->response->setStatusCode(404, 'Not Found')->sendHeaders();
+        Sentry\captureException($exception);
+        http_response_code(404);
         echo 'File not found!';
 
         return;
@@ -61,7 +66,21 @@ function fileUploaded(\Base $f3) {
 
     // Read the downloaded image
     $image = new Imagick();
-    $image->readImage($imgPath);
+    try {
+        $image->readImage($imgPath);
+    } catch (ImagickException $exception) {
+        Sentry\captureException($exception);
+        http_response_code(400);
+        unlink($imgPath);
+//        Keep file for post-mortem analysis
+//        $s3->deleteObject([
+//            'Bucket' => $bucket,
+//            'Key' => $key,
+//        ]);
+        echo 'Invalid file type, this incident will be reported';
+
+        return;
+    }
     unlink($imgPath);
     $image->setImageCompressionQuality(50);
     $image->setImageFormat('png');

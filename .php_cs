@@ -21,5 +21,4 @@ if (class_exists('PhpCsFixer\Finder')) {
         ))
         ->setFinder($finder)
     ;
-
 }
