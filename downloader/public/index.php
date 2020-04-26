@@ -86,6 +86,9 @@ function fileUploaded(\Base $f3) {
         return;
     }
 
+    // Free the client
+    $f3->abort();
+
     // Read the downloaded image
     $image = new Imagick();
     try {
