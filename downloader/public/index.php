@@ -34,6 +34,7 @@ $hasThumbnails = [
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
+$f3->route('HEAD /file-uploaded', function(){});
 
 // TODO: Add some checks on uploaded file
 // examples: https://security.stackexchange.com/questions/8587/how-can-i-be-protected-from-pictures-vulnerabilities/8625#8625

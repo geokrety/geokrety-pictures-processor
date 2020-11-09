@@ -20,6 +20,7 @@ Sentry\init(['dsn' => SENTRY_DSN]);
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
+$f3->route('HEAD /file-uploaded', function(){});
 
 function fileUploaded(\Base $f3) {
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER)) {
