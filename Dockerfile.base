@@ -1,14 +1,32 @@
-ARG BASE_IMAGE=geokrety/website-legacy-base
-ARG BASE_TAG=latest
+ARG BASE_IMAGE=php
+ARG BASE_TAG=7.4-apache-buster
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 LABEL maintainer="GeoKrety Team <contact@geokrety.org>"
-WORKDIR /var/www/geokrety
+WORKDIR /var/www/html
 
 ENTRYPOINT ["/geokrety-entrypoint.sh"]
 CMD ["apache2-foreground"]
 
+RUN apt-get update \
+    && apt-get install -y \
+        libmagickwand-dev \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        graphicsmagick-imagemagick-compat \
+        zip \
+    && apt-get clean \
+    && rm -r /var/lib/apt/lists/* \
+    \
+    && a2enmod rewrite \
+    \
+    && curl -sSL https://getcomposer.org/installer | php -- --filename=composer --install-dir=/usr/local/bin/ \
+    \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick
+
 COPY docker/files/ /
-COPY --chown=www-data:www-data composer.json /var/www/geokrety/composer.json
-COPY --chown=www-data:www-data composer.lock /var/www/geokrety/composer.lock
+COPY --chown=www-data:www-data composer.json /var/www/html/composer.json
+COPY --chown=www-data:www-data composer.lock /var/www/html/composer.lock
 RUN composer install --no-scripts --no-dev --no-autoloader --no-interaction

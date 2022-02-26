@@ -2,4 +2,4 @@ ARG BASE_IMAGE=geokrety/pictures-processor-base
 ARG BASE_TAG=latest
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
-COPY uploader/public /var/www/geokrety/website/public
+COPY uploader/public /var/www/html

@@ -1,9 +1,11 @@
 <?php
 
-require __DIR__.'/../../vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client as AWSS3Client;
+
+define('GK_WEBSITE_SERVER_URL', getenv('GK_WEBSITE_SERVER_URL') ?: 'http://nginx');
 
 define('GK_MINIO_SERVER_URL', getenv('GK_MINIO_SERVER_URL') ?: 'http://minio:9000');
 
@@ -103,7 +105,7 @@ function fileUploaded(\Base $f3) {
 //            'Key' => $key,
 //        ]);
         // TODO call API to remove entry in database
-        $ch = curl_init(sprintf('http://website/geokrety/avatar/%s/drop-s3-file-signature', $keyDest));
+        $ch = curl_init(sprintf('%s/geokrety/avatar/%s/drop-s3-file-signature', GK_WEBSITE_SERVER_URL, $keyDest));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
         curl_exec($ch);
