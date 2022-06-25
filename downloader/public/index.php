@@ -89,9 +89,6 @@ function fileUploaded(\Base $f3) {
         return;
     }
 
-    // Free the client
-    $f3->abort();
-
     // Read the downloaded image
     $image = new Imagick();
     try {
@@ -104,7 +101,6 @@ function fileUploaded(\Base $f3) {
 //            'Bucket' => $bucket,
 //            'Key' => $key,
 //        ]);
-        // TODO call API to remove entry in database
         $ch = curl_init(sprintf('%s/geokrety/avatar/%s/drop-s3-file-signature', GK_WEBSITE_SERVER_URL, $keyDest));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
@@ -113,6 +109,10 @@ function fileUploaded(\Base $f3) {
 
         return;
     }
+
+    // Free the client
+    $f3->abort();
+
     unlink($imgPath);
     $origImage = clone $image;
     autoRotateImage($image);
