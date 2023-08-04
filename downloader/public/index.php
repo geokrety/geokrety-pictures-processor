@@ -26,7 +26,8 @@ define('GK_BUCKET_THUMBNAIL_SUFFIX', getenv('GK_BUCKET_THUMBNAIL_SUFFIX') ?: '-t
 
 // SENTRY CONFIG
 define('SENTRY_DSN', getenv('SENTRY_DSN') ?: null);
-Sentry\init(['dsn' => SENTRY_DSN]);
+define('SENTRY_ENV', getenv('SENTRY_ENV') ?: null);
+\Sentry\init(['dsn' => SENTRY_DSN, 'environment' => SENTRY_ENV]);
 
 $hasThumbnails = [
     GK_BUCKET_NAME_GEOKRETY_AVATARS,
@@ -36,7 +37,7 @@ $hasThumbnails = [
 
 $f3 = Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
-$f3->route('HEAD /file-uploaded', function(){});
+$f3->route('HEAD /file-uploaded', function () {});
 
 // TODO: Add some checks on uploaded file
 // examples: https://security.stackexchange.com/questions/8587/how-can-i-be-protected-from-pictures-vulnerabilities/8625#8625
@@ -51,7 +52,7 @@ function fileUploaded(Base $f3) {
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
-        die();
+        exit;
     }
 
     file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
@@ -98,11 +99,11 @@ function fileUploaded(Base $f3) {
     } catch (ImagickException $exception) {
         http_response_code(400);
         unlink($imgPath);
-//        Keep file for post-mortem analysis
-//        $s3->deleteObject([
-//            'Bucket' => $bucket,
-//            'Key' => $key,
-//        ]);
+        //        Keep file for post-mortem analysis
+        //        $s3->deleteObject([
+        //            'Bucket' => $bucket,
+        //            'Key' => $key,
+        //        ]);
         $ch = curl_init(sprintf('%s/geokrety/avatar/%s/drop-s3-file-signature', GK_WEBSITE_SERVER_URL, $keyDest));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
@@ -174,21 +175,21 @@ function autoRotateImage(Imagick $image) {
     $orientation = $image->getImageOrientation();
 
     switch ($orientation) {
-        case imagick::ORIENTATION_BOTTOMRIGHT:
+        case Imagick::ORIENTATION_BOTTOMRIGHT:
             $image->rotateimage('#000', 180); // rotate 180 degrees
             break;
 
-        case imagick::ORIENTATION_RIGHTTOP:
+        case Imagick::ORIENTATION_RIGHTTOP:
             $image->rotateimage('#000', 90); // rotate 90 degrees CW
             break;
 
-        case imagick::ORIENTATION_LEFTBOTTOM:
+        case Imagick::ORIENTATION_LEFTBOTTOM:
             $image->rotateimage('#000', -90); // rotate 90 degrees CCW
             break;
     }
 
     // Now that it's auto-rotated, make sure the EXIF data is correct in case the EXIF gets saved with the image!
-    $image->setImageOrientation(imagick::ORIENTATION_TOPLEFT);
+    $image->setImageOrientation(Imagick::ORIENTATION_TOPLEFT);
 }
 
 $f3->run();

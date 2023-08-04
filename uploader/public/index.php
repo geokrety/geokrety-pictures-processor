@@ -20,17 +20,17 @@ Sentry\init(['dsn' => SENTRY_DSN]);
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
-$f3->route('HEAD /file-uploaded', function(){});
+$f3->route('HEAD /file-uploaded', function () {});
 
-function fileUploaded(\Base $f3) {
+function fileUploaded(Base $f3) {
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
-        die();
+        exit;
     }
 
-//    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
-//    file_put_contents('/tmp/body', $f3->get('BODY'));
+    //    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
+    //    file_put_contents('/tmp/body', $f3->get('BODY'));
 
     $s3 = new AWSS3Client([
         'version' => 'latest',
@@ -73,11 +73,11 @@ function fileUploaded(\Base $f3) {
         Sentry\captureException($exception);
         http_response_code(400);
         unlink($imgPath);
-//        Keep file for post-mortem analysis
-//        $s3->deleteObject([
-//            'Bucket' => $bucket,
-//            'Key' => $key,
-//        ]);
+        //        Keep file for post-mortem analysis
+        //        $s3->deleteObject([
+        //            'Bucket' => $bucket,
+        //            'Key' => $key,
+        //        ]);
         echo 'Invalid file type, this incident will be reported';
 
         return;
