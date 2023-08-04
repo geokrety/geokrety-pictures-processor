@@ -5,6 +5,11 @@ on:
     tags:
       - '*'
 
+env:
+  BASE_IMAGE_NAME: geokrety/pictures-processor-base
+  UPLOADER_IMAGE_NAME: geokrety/pictures-processor-uploader
+  DOWNLOADER_IMAGE_NAME: geokrety/pictures-processor-downloader
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -21,30 +26,41 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Set output
         id: vars
         run: |
-          echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+          short_ref=${GITHUB_REF#refs/*/}
+          echo "short_ref=${short_ref}" >> $GITHUB_OUTPUT
+          echo "short_ref is $short_ref."
 
-          raw=$(git branch -r --contains ${{ github.ref }})
-          branch=${raw/origin\/}
-          echo ::set-env name=BRANCH::$branch
+          declare -a raw
+          raw=($(git branch -r --contains ${{ github.ref }}))
+          declare -a base_tags uploader_tags downloader_tags
+          for br in "${raw[@]}"; do
+            branch="${br##*/}"
+            echo "Found branch=${branch}"
+            base_tags+=("${BASE_IMAGE_NAME}:${branch}")
+            uploader_tags+=("${UPLOADER_IMAGE_NAME}:${branch}")
+            downloader_tags+=("${DOWNLOADER_IMAGE_NAME}:${branch}")
+          done
+          echo "base_tags=$(IFS=, ; echo "${base_tags[*]}")" >> $GITHUB_OUTPUT
+          echo "uploader_tags=$(IFS=, ; echo "${uploader_tags[*]}")" >> $GITHUB_OUTPUT
+          echo "downloader_tags=$(IFS=, ; echo "${downloader_tags[*]}")" >> $GITHUB_OUTPUT
+          echo "Will use base_tags: $(IFS=, ; echo "${base_tags[*]}")"
+          echo "Will use uploader_tags: $(IFS=, ; echo "${uploader_tags[*]}")"
+          echo "Will use downloader_tags: $(IFS=, ; echo "${downloader_tags[*]}")"
 
       - name: Build and push - base
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.base
           push: true
-          tags: geokrety/pictures-processor-base:${{ steps.vars.outputs.BRANCH }},geokrety/pictures-processor-base:${{ steps.vars.outputs.short_ref }}
-
-      - name: Build and push - downloader
-        uses: docker/build-push-action@v4
-        with:
-          file: Dockerfile.downloader
-          push: true
-          build-args: |
-            BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: geokrety/pictures-processor-downloader:${{ steps.vars.outputs.BRANCH }},geokrety/pictures-processor-downloader:${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.base_tags }},geokrety/pictures-processor-base:${{ steps.vars.outputs.short_ref }}
 
       - name: Build and push - uploader
         uses: docker/build-push-action@v4
@@ -53,4 +69,13 @@ jobs:
           push: true
           build-args: |
             BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: geokrety/pictures-processor-uploader:${{ steps.vars.outputs.BRANCH }},geokrety/pictures-processor-uploader:${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.uploader_tags }},geokrety/pictures-processor-uploader:${{ steps.vars.outputs.short_ref }}
+
+      - name: Build and push - downloader
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile.downloader
+          push: true
+          build-args: |
+            BASE_TAG=${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.downloader_tags }},geokrety/pictures-processor-downloader:${{ steps.vars.outputs.short_ref }}
