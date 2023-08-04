@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ssh-key: "${{ secrets.COMMIT_KEY }}"
 
       # setting up Node
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
 
       # disable package-lock.json to stop it being created
       - name: Disable package-lock.json
@@ -116,15 +116,8 @@ jobs:
                   }
                 }],
                 "@semantic-release/changelog",
-                "@semantic-release/github",
-                [
-                  "@semantic-release/git",
-                  {
-                    "assets": "CHANGELOG.md",
-                    "message": "ci(release): \${nextRelease.version}\n\n\${nextRelease.notes}"
-                  }
-                ]
+                "@semantic-release/github"
               ]
             }
           EOF
-          npx semantic-release@v17.4.2
+          npx semantic-release@v21.0.7
