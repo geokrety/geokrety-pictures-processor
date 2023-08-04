@@ -1,19 +1,77 @@
 name: docker-build
 
 on:
+  schedule:
+    - cron: "10 10 * * *"
   push:
+    branches:
+      - "**"
     tags:
-      - '*'
-
-env:
-  BASE_IMAGE_NAME: geokrety/pictures-processor-base
-  UPLOADER_IMAGE_NAME: geokrety/pictures-processor-uploader
-  DOWNLOADER_IMAGE_NAME: geokrety/pictures-processor-downloader
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - "main"
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Docker meta
+        id: meta_base
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            geokrety/pictures-processor-base
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Docker meta
+        id: meta_uploader
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            geokrety/pictures-processor-uploader
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Docker meta
+        id: meta_downloader
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            geokrety/pictures-processor-downloader
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -21,61 +79,36 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Set output
-        id: vars
-        run: |
-          short_ref=${GITHUB_REF#refs/*/}
-          echo "short_ref=${short_ref}" >> $GITHUB_OUTPUT
-          echo "short_ref is $short_ref."
-
-          declare -a raw
-          raw=($(git branch -r --contains ${{ github.ref }}))
-          declare -a base_tags uploader_tags downloader_tags
-          for br in "${raw[@]}"; do
-            branch="${br##*/}"
-            echo "Found branch=${branch}"
-            base_tags+=("${BASE_IMAGE_NAME}:${branch}")
-            uploader_tags+=("${UPLOADER_IMAGE_NAME}:${branch}")
-            downloader_tags+=("${DOWNLOADER_IMAGE_NAME}:${branch}")
-          done
-          echo "base_tags=$(IFS=, ; echo "${base_tags[*]}")" >> $GITHUB_OUTPUT
-          echo "uploader_tags=$(IFS=, ; echo "${uploader_tags[*]}")" >> $GITHUB_OUTPUT
-          echo "downloader_tags=$(IFS=, ; echo "${downloader_tags[*]}")" >> $GITHUB_OUTPUT
-          echo "Will use base_tags: $(IFS=, ; echo "${base_tags[*]}")"
-          echo "Will use uploader_tags: $(IFS=, ; echo "${uploader_tags[*]}")"
-          echo "Will use downloader_tags: $(IFS=, ; echo "${downloader_tags[*]}")"
-
       - name: Build and push - base
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.base
-          push: true
-          tags: ${{ steps.vars.outputs.base_tags }},${BASE_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_base.outputs.tags }}
+          labels: ${{ steps.meta_base.outputs.labels }}
 
       - name: Build and push - uploader
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.uploader
-          push: true
           build-args: |
             BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: ${{ steps.vars.outputs.uploader_tags }},${UPLOADER_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_uploader.outputs.tags }}
+          labels: ${{ steps.meta_uploader.outputs.labels }}
 
       - name: Build and push - downloader
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.downloader
-          push: true
           build-args: |
-            BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: ${{ steps.vars.outputs.downloader_tags }},${DOWNLOADER_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
+            BASE_TAG=$DOCKER_METADATA_OUTPUT_VERSION
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_downloader.outputs.tags }}
+          labels: ${{ steps.meta_downloader.outputs.labels }}
