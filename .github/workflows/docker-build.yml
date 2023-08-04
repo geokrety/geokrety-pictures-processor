@@ -108,7 +108,7 @@ jobs:
         with:
           file: Dockerfile.downloader
           build-args: |
-            BASE_TAG=$DOCKER_METADATA_OUTPUT_VERSION
+            BASE_TAG=${{ steps.meta_base.outputs.version }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_downloader.outputs.tags }}
           labels: ${{ steps.meta_downloader.outputs.labels }}
