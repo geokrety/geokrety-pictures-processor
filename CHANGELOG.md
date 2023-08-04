@@ -1,3 +1,5 @@
+## [1.0.5](https://github.com/geokrety/geokrety-pictures-processor/compare/v1.0.4...v1.0.5) (2023-08-04)
+
 ## [1.0.4](https://github.com/geokrety/geokrety-pictures-processor/compare/v1.0.3...v1.0.4) (2023-08-04)
 
 ## [1.0.3](https://github.com/geokrety/geokrety-pictures-processor/compare/v1.0.2...v1.0.3) (2023-08-04)
