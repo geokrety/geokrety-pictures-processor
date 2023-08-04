@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/geokrety/geokrety-pictures-processor/compare/v1.0.1...v1.0.2) (2023-08-04)
+
+
+### Dependencies
+
+* Update dependencies ([597d5e3](https://github.com/geokrety/geokrety-pictures-processor/commit/597d5e342d9456a27b4a5e7a7390870cca04ab20))
+
 ## 1.0.0 (2023-08-04)
 
 
