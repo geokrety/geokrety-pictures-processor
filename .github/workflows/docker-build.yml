@@ -21,23 +21,32 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set output
+        id: vars
+        run: |
+          echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+
       - name: Build and push - base
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.base
           push: true
-          tags: geokrety/pictures-processor-base:latest
+          tags: geokrety/pictures-processor-base:${{ steps.vars.outputs.short_ref }}
 
       - name: Build and push - downloader
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.downloader
           push: true
-          tags: geokrety/pictures-processor-downloader:latest
+          build-args: |
+            BASE_TAG=${{ steps.vars.outputs.short_ref }}
+          tags: geokrety/pictures-processor-downloader:${{ steps.vars.outputs.short_ref }}
 
       - name: Build and push - uploader
         uses: docker/build-push-action@v4
         with:
           file: Dockerfile.uploader
           push: true
-          tags: geokrety/pictures-processor-uploader:latest
+          build-args: |
+            BASE_TAG=${{ steps.vars.outputs.short_ref }}
+          tags: geokrety/pictures-processor-uploader:${{ steps.vars.outputs.short_ref }}
