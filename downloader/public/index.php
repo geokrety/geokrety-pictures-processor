@@ -34,7 +34,7 @@ $hasThumbnails = [
     GK_BUCKET_NAME_MOVES_PICTURES,
 ];
 
-$f3 = \Base::instance();
+$f3 = Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
 $f3->route('HEAD /file-uploaded', function(){});
 
@@ -42,7 +42,10 @@ $f3->route('HEAD /file-uploaded', function(){});
 // examples: https://security.stackexchange.com/questions/8587/how-can-i-be-protected-from-pictures-vulnerabilities/8625#8625
 //           https://security.stackexchange.com/questions/235/what-steps-should-be-taken-to-validate-user-uploaded-images-within-an-applicatio/3016#3016
 
-function fileUploaded(\Base $f3) {
+/**
+ * @throws \ImagickException
+ */
+function fileUploaded(Base $f3) {
     global $hasThumbnails;
 
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER)) {
@@ -64,7 +67,6 @@ function fileUploaded(\Base $f3) {
             'secret' => GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY,
         ],
     ]);
-    //file_put_contents('/tmp/logs', sprintf('curl -v http://pictures-processor-downloader/file-uploaded -d \'%s\' -H \'Content-Type: application/json\'', $app->request->getRawBody()));
 
     $body = json_decode($f3->get('BODY'), true);
     if (!in_array($body['EventName'], ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'])) {
@@ -150,6 +152,9 @@ function fileUploaded(\Base $f3) {
     ]);
 }
 
+/**
+ * @throws \ImagickException
+ */
 function resizeToMax(Imagick $image, $dimensions) {
     if ($image->getImageWidth() > $dimensions || $image->getImageHeight() > $dimensions) {
         if ($image->getImageWidth() > $image->getImageHeight()) {
@@ -162,6 +167,9 @@ function resizeToMax(Imagick $image, $dimensions) {
 }
 
 // https://www.php.net/manual/en/imagick.getimageorientation.php#111448
+/**
+ * @throws \ImagickException
+ */
 function autoRotateImage(Imagick $image) {
     $orientation = $image->getImageOrientation();
 
