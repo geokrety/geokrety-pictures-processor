@@ -60,7 +60,7 @@ jobs:
         with:
           file: Dockerfile.base
           push: true
-          tags: ${{ steps.vars.outputs.base_tags }},geokrety/pictures-processor-base:${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.base_tags }},${BASE_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
 
       - name: Build and push - uploader
         uses: docker/build-push-action@v4
@@ -69,7 +69,7 @@ jobs:
           push: true
           build-args: |
             BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: ${{ steps.vars.outputs.uploader_tags }},geokrety/pictures-processor-uploader:${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.uploader_tags }},${UPLOADER_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
 
       - name: Build and push - downloader
         uses: docker/build-push-action@v4
@@ -78,4 +78,4 @@ jobs:
           push: true
           build-args: |
             BASE_TAG=${{ steps.vars.outputs.short_ref }}
-          tags: ${{ steps.vars.outputs.downloader_tags }},geokrety/pictures-processor-downloader:${{ steps.vars.outputs.short_ref }}
+          tags: ${{ steps.vars.outputs.downloader_tags }},${DOWNLOADER_IMAGE_NAME}:${{ steps.vars.outputs.short_ref }}
