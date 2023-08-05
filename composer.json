@@ -5,13 +5,13 @@
     }
   },
   "require": {
-    "aws/aws-sdk-php": "^3.133",
+    "aws/aws-sdk-php": "^3",
     "bcosca/fatfree": "^3.7",
     "ext-curl": "*",
     "ext-imagick": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "sentry/sdk": "2.1.0"
+    "sentry/sdk": "^3"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3"
