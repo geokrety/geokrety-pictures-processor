@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=geokrety/pictures-processor-base
-ARG BASE_TAG=latest
+ARG BASE_TAG=main
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 COPY downloader/public /var/www/html
