@@ -16,7 +16,8 @@ define('GK_BUCKET_GEOKRETY_AVATARS_CACHE_CONTROL', getenv('GK_BUCKET_GEOKRETY_AV
 
 // SENTRY CONFIG
 define('SENTRY_DSN', getenv('SENTRY_DSN') ?: null);
-Sentry\init(['dsn' => SENTRY_DSN]);
+define('SENTRY_ENV', getenv('SENTRY_ENV') ?: null);
+Sentry\init(['dsn' => SENTRY_DSN, 'environment' => SENTRY_ENV]);
 
 $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
@@ -32,16 +33,24 @@ function fileUploaded(Base $f3) {
     //    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
     //    file_put_contents('/tmp/body', $f3->get('BODY'));
 
-    $s3 = new AWSS3Client([
-        'version' => 'latest',
-        'region' => 'us-east-1',
-        'endpoint' => GK_MINIO_SERVER_URL,
-        'use_path_style_endpoint' => true,
-        'credentials' => [
-            'key' => MINIO_ACCESS_KEY,
-            'secret' => MINIO_SECRET_KEY,
-        ],
-    ]);
+    try {
+        $s3 = new AWSS3Client([
+            'version' => 'latest',
+            'region' => 'us-east-1',
+            'endpoint' => GK_MINIO_SERVER_URL,
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => MINIO_ACCESS_KEY,
+                'secret' => MINIO_SECRET_KEY,
+            ],
+        ]);
+    } catch (S3Exception $exception) {
+        Sentry\captureException($exception);
+        http_response_code(401);
+        echo 'Failed to connect to S3!';
+
+        return;
+    }
 
     $body = json_decode($f3->get('BODY'), true);
     if ($body['EventName'] !== 's3:ObjectCreated:Put') {

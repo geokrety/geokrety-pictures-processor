@@ -27,7 +27,7 @@ define('GK_BUCKET_THUMBNAIL_SUFFIX', getenv('GK_BUCKET_THUMBNAIL_SUFFIX') ?: '-t
 // SENTRY CONFIG
 define('SENTRY_DSN', getenv('SENTRY_DSN') ?: null);
 define('SENTRY_ENV', getenv('SENTRY_ENV') ?: null);
-\Sentry\init(['dsn' => SENTRY_DSN, 'environment' => SENTRY_ENV]);
+Sentry\init(['dsn' => SENTRY_DSN, 'environment' => SENTRY_ENV]);
 
 $hasThumbnails = [
     GK_BUCKET_NAME_GEOKRETY_AVATARS,
@@ -58,16 +58,24 @@ function fileUploaded(Base $f3) {
     file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
     file_put_contents('/tmp/body', $f3->get('BODY'));
 
-    $s3 = new AWSS3Client([
-        'version' => 'latest',
-        'region' => 'us-east-1',
-        'endpoint' => GK_MINIO_SERVER_URL,
-        'use_path_style_endpoint' => true,
-        'credentials' => [
-            'key' => GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY,
-            'secret' => GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY,
-        ],
-    ]);
+    try {
+        $s3 = new AWSS3Client([
+            'version' => 'latest',
+            'region' => 'us-east-1',
+            'endpoint' => GK_MINIO_SERVER_URL,
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY,
+                'secret' => GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY,
+            ],
+        ]);
+    } catch (S3Exception $exception) {
+        Sentry\captureException($exception);
+        http_response_code(401);
+        echo 'Failed to connect to S3!';
+
+        return;
+    }
 
     $body = json_decode($f3->get('BODY'), true);
     if (!in_array($body['EventName'], ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'])) {
