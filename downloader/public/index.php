@@ -45,6 +45,7 @@ $f3->route('HEAD /file-uploaded', function () {});
 
 /**
  * @throws \ImagickException
+ * @throws \Exception
  */
 function fileUploaded(Base $f3) {
     global $hasThumbnails;
@@ -52,7 +53,8 @@ function fileUploaded(Base $f3) {
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
-        exit;
+        $f3->abort();
+        throw new Exception('Missing or wrong authorization header');
     }
 
     file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
@@ -70,11 +72,10 @@ function fileUploaded(Base $f3) {
             ],
         ]);
     } catch (S3Exception $exception) {
-        Sentry\captureException($exception);
         http_response_code(401);
         echo 'Failed to connect to S3!';
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
 
     $body = json_decode($f3->get('BODY'), true);
@@ -93,11 +94,10 @@ function fileUploaded(Base $f3) {
             'SaveAs' => $imgPath,
         ]);
     } catch (S3Exception $exception) {
-        Sentry\captureException($exception);
         http_response_code(404);
         echo 'File not found!';
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
 
     // Read the downloaded image
@@ -116,9 +116,8 @@ function fileUploaded(Base $f3) {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST)]);
         curl_exec($ch);
-        Sentry\captureException($exception);
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
 
     // Free the client
@@ -200,4 +199,8 @@ function autoRotateImage(Imagick $image) {
     $image->setImageOrientation(Imagick::ORIENTATION_TOPLEFT);
 }
 
-$f3->run();
+try {
+    $f3->run();
+} catch (Exception $exception) {
+    Sentry\captureException($exception);
+}

@@ -23,15 +23,16 @@ $f3 = \Base::instance();
 $f3->route('POST /file-uploaded', 'fileUploaded');
 $f3->route('HEAD /file-uploaded', function () {});
 
+/**
+ * @throws \ImagickException
+ */
 function fileUploaded(Base $f3) {
     if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
-        exit;
+        $f3->abort();
+        throw new Exception('Missing or wrong authorization header');
     }
-
-    //    file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
-    //    file_put_contents('/tmp/body', $f3->get('BODY'));
 
     try {
         $s3 = new AWSS3Client([
@@ -45,11 +46,10 @@ function fileUploaded(Base $f3) {
             ],
         ]);
     } catch (S3Exception $exception) {
-        Sentry\captureException($exception);
         http_response_code(401);
         echo 'Failed to connect to S3!';
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
 
     $body = json_decode($f3->get('BODY'), true);
@@ -67,11 +67,10 @@ function fileUploaded(Base $f3) {
             'SaveAs' => $imgPath,
         ]);
     } catch (S3Exception $exception) {
-        Sentry\captureException($exception);
         http_response_code(404);
         echo 'File not found!';
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
 
     // Read the downloaded image
@@ -79,7 +78,6 @@ function fileUploaded(Base $f3) {
     try {
         $image->readImage($imgPath);
     } catch (ImagickException $exception) {
-        Sentry\captureException($exception);
         http_response_code(400);
         unlink($imgPath);
         //        Keep file for post-mortem analysis
@@ -88,8 +86,8 @@ function fileUploaded(Base $f3) {
         //            'Key' => $key,
         //        ]);
         echo 'Invalid file type, this incident will be reported';
-
-        return;
+        $f3->abort();
+        throw $exception;
     }
     unlink($imgPath);
     $image->setImageCompressionQuality(50);
@@ -110,4 +108,8 @@ function fileUploaded(Base $f3) {
     ]);
 }
 
-$f3->run();
+try {
+    $f3->run();
+} catch (Exception $exception) {
+    Sentry\captureException($exception);
+}
