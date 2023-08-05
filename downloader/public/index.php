@@ -2,7 +2,6 @@
 
 require __DIR__.'/vendor/autoload.php';
 
-use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client as AWSS3Client;
 
 define('GK_WEBSITE_SERVER_URL', getenv('GK_WEBSITE_SERVER_URL') ?: 'http://nginx');
@@ -60,27 +59,20 @@ function fileUploaded(Base $f3) {
     file_put_contents('/tmp/headers', print_r($f3->get('HEADERS'), true));
     file_put_contents('/tmp/body', $f3->get('BODY'));
 
-    try {
-        $s3 = new AWSS3Client([
-            'version' => 'latest',
-            'region' => 'us-east-1',
-            'endpoint' => GK_MINIO_SERVER_URL,
-            'use_path_style_endpoint' => true,
-            'credentials' => [
-                'key' => GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY,
-                'secret' => GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY,
-            ],
-        ]);
-    } catch (S3Exception $exception) {
-        http_response_code(401);
-        echo 'Failed to connect to S3!';
-        $f3->abort();
-        throw $exception;
-    }
+    $s3 = new AWSS3Client([
+        'version' => 'latest',
+        'region' => 'us-east-1',
+        'endpoint' => GK_MINIO_SERVER_URL,
+        'use_path_style_endpoint' => true,
+        'credentials' => [
+            'key' => GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY,
+            'secret' => GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY,
+        ],
+    ]);
 
     $body = json_decode($f3->get('BODY'), true);
     if (!in_array($body['EventName'], ['s3:ObjectCreated:Put', 's3:ObjectCreated:Post'])) {
-        return;
+        throw new Exception('Invalid EventName');
     }
 
     list($bucket, $key) = explode('/', $body['Key'], 2);
@@ -93,7 +85,7 @@ function fileUploaded(Base $f3) {
             'Key' => $key,
             'SaveAs' => $imgPath,
         ]);
-    } catch (S3Exception $exception) {
+    } catch (Exception $exception) {
         http_response_code(404);
         echo 'File not found!';
         $f3->abort();
