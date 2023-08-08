@@ -9,14 +9,6 @@ on:
     tags:
       - "v*.*.*"
   pull_request:
-  workflow_call:
-    inputs:
-      dockerhub_username:
-        required: true
-        type: string
-    secrets:
-      dockerhub_token:
-        required: true
 
 jobs:
   docker:
@@ -28,5 +20,5 @@ jobs:
 
       - uses: ./.github/actions/docker-build
         with:
-          dockerhub_username: ${{ inputs.dockerhub_username }}
-          dockerhub_token: ${{ secrets.dockerhub_token }}
+          dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}

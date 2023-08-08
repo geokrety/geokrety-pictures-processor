@@ -3,7 +3,7 @@ inputs:
   dockerhub_username:
     type: string
   dockerhub_token:
-    required: true
+    type: string
 
 jobs:
   using: "composite"
