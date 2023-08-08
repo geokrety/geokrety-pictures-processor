@@ -1,11 +1,13 @@
 name: Docker build
 inputs:
   dockerhub_username:
+    description: docker hub username
     type: string
   dockerhub_token:
+    description: docker hub token
     type: string
 
-jobs:
+runs:
   using: "composite"
   steps:
     - name: base image
@@ -19,17 +21,15 @@ jobs:
 
     - name: uploader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
-      needs: docker-base
       id: docker-uploader
       with:
         image_name: geokrety/pictures-processor-base
-        dockerhub_username: ${{ inputs.dockerhub_username }}
-        dockerhub_token: ${{ inputs.dockerhub_token }}
+        dockerhub_username: "${{ inputs.dockerhub_username }}"
+        dockerhub_token: "${{ inputs.dockerhub_token }}"
         dockerfile: Dockerfile.uploader
 
     - name: downloader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
-      needs: docker-base
       id: docker-downloader
       with:
         image_name: geokrety/pictures-processor-base

@@ -6,16 +6,18 @@ on:
       - main
 
 jobs:
-  pre-commit:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
+  # pre-commit:
+  #   uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
 
   docker:
-    needs: pre-commit
-    uses: ./.github/workflows/docker-build.yml
-    with:
-      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-    secrets:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+    # needs: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/docker-build
+        with:
+          dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   build-release:
     uses: geokrety/geokrety-gha-workflows/.github/workflows/semantic-release.yml@main
