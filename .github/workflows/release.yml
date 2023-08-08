@@ -6,11 +6,11 @@ on:
       - main
 
 jobs:
-  # pre-commit:
-  #   uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
+  pre-commit:
+    uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
 
   docker:
-    # needs: pre-commit
+    needs: pre-commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
