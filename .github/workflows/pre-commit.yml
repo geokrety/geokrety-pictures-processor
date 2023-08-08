@@ -8,4 +8,4 @@ on:
 
 jobs:
   lint:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit.yml@main
+    uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
