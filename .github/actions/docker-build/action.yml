@@ -1,0 +1,38 @@
+name: Docker build
+inputs:
+  dockerhub_username:
+    type: string
+  dockerhub_token:
+    required: true
+
+jobs:
+  using: "composite"
+  steps:
+    - name: base image
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      id: docker-base
+      with:
+        image_name: geokrety/pictures-processor-base
+        dockerhub_username: ${{ inputs.dockerhub_username }}
+        dockerhub_token: ${{ inputs.dockerhub_token }}
+        dockerfile: Dockerfile.base
+
+    - name: uploader
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      needs: docker-base
+      id: docker-uploader
+      with:
+        image_name: geokrety/pictures-processor-base
+        dockerhub_username: ${{ inputs.dockerhub_username }}
+        dockerhub_token: ${{ inputs.dockerhub_token }}
+        dockerfile: Dockerfile.uploader
+
+    - name: downloader
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      needs: docker-base
+      id: docker-downloader
+      with:
+        image_name: geokrety/pictures-processor-base
+        dockerhub_username: ${{ inputs.dockerhub_username }}
+        dockerhub_token: ${{ inputs.dockerhub_token }}
+        dockerfile: Dockerfile.downloader

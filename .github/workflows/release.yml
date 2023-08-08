@@ -6,7 +6,19 @@ on:
       - main
 
 jobs:
+  pre-commit:
+    uses: geokrety/geokrety-gha-workflows/.github/workflows/pre-commit_php.yml@main
+
+  docker:
+    needs: pre-commit
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
   build-release:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/release.yml@main
+    uses: geokrety/geokrety-gha-workflows/.github/workflows/semantic-release.yml@main
+    needs: docker
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}

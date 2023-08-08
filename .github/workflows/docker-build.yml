@@ -5,37 +5,28 @@ on:
     - cron: "0 10 * * *"
   push:
     branches:
-      - "**"
+      - "!main"
     tags:
       - "v*.*.*"
   pull_request:
+  workflow_call:
+    inputs:
+      dockerhub_username:
+        required: true
+        type: string
+    secrets:
+      dockerhub_token:
+        required: true
 
 jobs:
-  docker-base:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/docker-build.yml@main
-    with:
-      image_name: geokrety/pictures-processor-base
-      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-      dockerfile: Dockerfile.base
-    secrets:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-  docker-uploader:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/docker-build.yml@main
-    needs: docker-base
-    with:
-      image_name: geokrety/pictures-processor-uploader
-      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-      dockerfile: Dockerfile.uploader
-    secrets:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  docker-downloader:
-    uses: geokrety/geokrety-gha-workflows/.github/workflows/docker-build.yml@main
-    needs: docker-base
-    with:
-      image_name: geokrety/pictures-processor-downloader
-      dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-      dockerfile: Dockerfile.downloader
-    secrets:
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: ./.github/actions/docker-build
+        with:
+          dockerhub_username: ${{ inputs.dockerhub_username }}
+          dockerhub_token: ${{ secrets.dockerhub_token }}
