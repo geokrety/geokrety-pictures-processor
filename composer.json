@@ -6,7 +6,7 @@
   },
   "require": {
     "aws/aws-sdk-php": "^3",
-    "bcosca/fatfree": "^3.7",
+    "bcosca/fatfree": "^3.8",
     "ext-curl": "*",
     "ext-imagick": "*",
     "ext-json": "*",
