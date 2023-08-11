@@ -10,7 +10,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: base image
+    - name: base
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
       id: docker-base
       with:
@@ -23,16 +23,18 @@ runs:
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
       id: docker-uploader
       with:
-        image_name: geokrety/pictures-processor-base
+        image_name: geokrety/pictures-processor-uploader
         dockerhub_username: "${{ inputs.dockerhub_username }}"
         dockerhub_token: "${{ inputs.dockerhub_token }}"
         dockerfile: Dockerfile.uploader
+        build_args: BASE_TAG=${{ steps.base.outputs.tag }}
 
     - name: downloader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
       id: docker-downloader
       with:
-        image_name: geokrety/pictures-processor-base
+        image_name: geokrety/pictures-processor-downloader
         dockerhub_username: ${{ inputs.dockerhub_username }}
         dockerhub_token: ${{ inputs.dockerhub_token }}
         dockerfile: Dockerfile.downloader
+        build_args: BASE_TAG=${{ steps.base.outputs.tag }}
