@@ -19,6 +19,9 @@ runs:
         dockerhub_token: ${{ inputs.dockerhub_token }}
         dockerfile: Dockerfile.base
 
+    - name: Debug
+      uses: raven-actions/debug@v1
+
     - name: uploader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
       id: docker-uploader
