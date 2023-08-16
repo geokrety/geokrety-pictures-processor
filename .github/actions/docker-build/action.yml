@@ -30,7 +30,7 @@ runs:
         dockerhub_username: "${{ inputs.dockerhub_username }}"
         dockerhub_token: "${{ inputs.dockerhub_token }}"
         dockerfile: Dockerfile.uploader
-        build_args: BASE_TAG=${{ steps.base.outputs.tag }}
+        build_args: BASE_TAG=${DOCKER_METADATA_OUTPUT_VERSION}
 
     - name: downloader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
@@ -40,4 +40,4 @@ runs:
         dockerhub_username: ${{ inputs.dockerhub_username }}
         dockerhub_token: ${{ inputs.dockerhub_token }}
         dockerfile: Dockerfile.downloader
-        build_args: BASE_TAG=${{ steps.base.outputs.tag }}
+        build_args: BASE_TAG=${DOCKER_METADATA_OUTPUT_VERSION}
