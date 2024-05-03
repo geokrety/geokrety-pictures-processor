@@ -9,7 +9,7 @@ define('GK_MINIO_SERVER_URL', getenv('GK_MINIO_SERVER_URL') ?: 'http://minio:900
 define('MINIO_ACCESS_KEY', getenv('MINIO_ACCESS_KEY') ?: null);
 define('MINIO_SECRET_KEY', getenv('MINIO_SECRET_KEY') ?: null);
 
-define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER') ?: null);
+define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_UPLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_UPLOADER') ?: null);
 define('GK_PP_TMP_DIR', getenv('GK_PP_TMP_DIR') ?: '/tmp');
 define('GK_BUCKET_GEOKRETY_AVATARS_CACHE_CONTROL', getenv('GK_BUCKET_GEOKRETY_AVATARS_CACHE_CONTROL') ?: 600);
 
@@ -26,7 +26,7 @@ $f3->route('HEAD /file-uploaded', function () {});
  * @throws \ImagickException
  */
 function fileUploaded(Base $f3) {
-    if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_UPLOADER)) {
+    if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_UPLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
         $f3->abort();
