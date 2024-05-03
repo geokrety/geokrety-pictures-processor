@@ -2,7 +2,7 @@ name: docker-build
 
 on:
   push:
-    branches-ignore:
+    branches:
       - main
     tags:
       - "v*.*.*"
