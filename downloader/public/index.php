@@ -11,7 +11,7 @@ define('GK_MINIO_SERVER_URL', getenv('GK_MINIO_SERVER_URL') ?: 'http://minio:900
 
 define('GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY', getenv('GK_MINIO_PICTURES_PROCESSOR_MINIO_ACCESS_KEY') ?: null);
 define('GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY', getenv('GK_MINIO_PICTURES_PROCESSOR_MINIO_SECRET_KEY') ?: null);
-define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER') ?: null);
+define('GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_DOWNLOADER', getenv('GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_DOWNLOADER') ?: null);
 define('GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST', getenv('GK_AUTH_TOKEN_DROP_S3_FILE_UPLOAD_REQUEST') ?: '');
 
 define('GK_BUCKET_NAME_GEOKRETY_AVATARS', getenv('GK_BUCKET_NAME_GEOKRETY_AVATARS') ?: 'gk-avatars');
@@ -50,7 +50,7 @@ $f3->route('HEAD /file-uploaded', function () {});
 function fileUploaded(Base $f3) {
     global $hasThumbnails;
 
-    if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PICTURES_PROCESSOR_DOWNLOADER)) {
+    if ($f3->get('HEADERS.Authorization') !== sprintf('Bearer %s', GK_MINIO_WEBHOOK_AUTH_TOKEN_PP_DOWNLOADER)) {
         http_response_code(400);
         echo 'Missing or wrong authorization header';
         $f3->abort();
