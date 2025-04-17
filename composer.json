@@ -11,7 +11,7 @@
     "ext-imagick": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "sentry/sdk": "3.5.0"
+    "sentry/sdk": "4.0.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "v3.75.0"
