@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: base
-      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@test
       id: docker-base
       with:
         image_name: geokrety/pictures-processor-base
@@ -22,9 +22,6 @@ runs:
     - name: Debug
       uses: raven-actions/debug@v1
 
-    - run: docker image ls
-      shell: bash
-
     - name: uploader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@test
       id: docker-uploader
@@ -34,7 +31,7 @@ runs:
         dockerhub_token: "${{ inputs.dockerhub_token }}"
         dockerfile: Dockerfile.uploader
         build_args: BASE_TAG=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
-        build_contexts: $${BASE_IMAGE}:$${BASE_TAG}=docker-image://${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
+        build_contexts: geokrety/pictures-processor-base:${{ env.DOCKER_METADATA_OUTPUT_VERSION }}=docker-image://geokrety/pictures-processor-base:${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
 
     - name: downloader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@test
@@ -44,4 +41,5 @@ runs:
         dockerhub_username: ${{ inputs.dockerhub_username }}
         dockerhub_token: ${{ inputs.dockerhub_token }}
         dockerfile: Dockerfile.downloader
-        build_args: BASE_TAG=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
+        build_args: geokrety/pictures-processor-base=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
+        build_contexts: geokrety/pictures-processor-base:${{ env.DOCKER_METADATA_OUTPUT_VERSION }}=docker-image://geokrety/pictures-processor-base:${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
