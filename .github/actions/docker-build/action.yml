@@ -22,6 +22,9 @@ runs:
     - name: Debug
       uses: raven-actions/debug@v1
 
+    - run: docker image ls
+      shell: bash
+
     - name: uploader
       uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
       id: docker-uploader
