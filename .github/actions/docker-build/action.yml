@@ -26,7 +26,7 @@ runs:
       shell: bash
 
     - name: uploader
-      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@test
       id: docker-uploader
       with:
         image_name: geokrety/pictures-processor-uploader
@@ -34,9 +34,10 @@ runs:
         dockerhub_token: "${{ inputs.dockerhub_token }}"
         dockerfile: Dockerfile.uploader
         build_args: BASE_TAG=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
+        build_contexts: $${BASE_IMAGE}:$${BASE_TAG}=docker-image://${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
 
     - name: downloader
-      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@main
+      uses: geokrety/geokrety-gha-workflows/.github/actions/docker-build@test
       id: docker-downloader
       with:
         image_name: geokrety/pictures-processor-downloader
