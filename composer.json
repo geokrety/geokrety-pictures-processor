@@ -6,7 +6,7 @@
   },
   "require": {
     "aws/aws-sdk-php": "3.356.8",
-    "bcosca/fatfree": "3.9.0",
+    "bcosca/fatfree": "3.9.1",
     "ext-curl": "*",
     "ext-imagick": "*",
     "ext-json": "*",
