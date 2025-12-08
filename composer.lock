@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "23b97b3efba52053d43dd4cfbcad36be",
+    "content-hash": "7562a9c71d66652ec1b60299f6d3e7b2",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -159,16 +159,16 @@
         },
         {
             "name": "bcosca/fatfree",
-            "version": "3.9.1",
+            "version": "3.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bcosca/fatfree.git",
-                "reference": "2c6a090930f06fd1e8360920a55c0476f5961ef0"
+                "reference": "199052ea367873bace9c20a07efe1a1032674952"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bcosca/fatfree/zipball/2c6a090930f06fd1e8360920a55c0476f5961ef0",
-                "reference": "2c6a090930f06fd1e8360920a55c0476f5961ef0",
+                "url": "https://api.github.com/repos/bcosca/fatfree/zipball/199052ea367873bace9c20a07efe1a1032674952",
+                "reference": "199052ea367873bace9c20a07efe1a1032674952",
                 "shasum": ""
             },
             "require": {
@@ -183,22 +183,22 @@
             "homepage": "http://fatfreeframework.com/",
             "support": {
                 "issues": "https://github.com/bcosca/fatfree/issues",
-                "source": "https://github.com/bcosca/fatfree/tree/3.9.1"
+                "source": "https://github.com/bcosca/fatfree/tree/3.9.2"
             },
-            "time": "2025-08-09T12:50:26+00:00"
+            "time": "2025-12-02T00:49:32+00:00"
         },
         {
             "name": "bcosca/fatfree-core",
-            "version": "3.9.1",
+            "version": "3.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/f3-factory/fatfree-core.git",
-                "reference": "15167bf8377c262a5354e2c419c383aaa4d41280"
+                "reference": "3ba261541e529d20b32615fe5f7b5740ea0951a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/f3-factory/fatfree-core/zipball/15167bf8377c262a5354e2c419c383aaa4d41280",
-                "reference": "15167bf8377c262a5354e2c419c383aaa4d41280",
+                "url": "https://api.github.com/repos/f3-factory/fatfree-core/zipball/3ba261541e529d20b32615fe5f7b5740ea0951a3",
+                "reference": "3ba261541e529d20b32615fe5f7b5740ea0951a3",
                 "shasum": ""
             },
             "require": {
@@ -218,7 +218,7 @@
             "homepage": "http://fatfreeframework.com/",
             "support": {
                 "issues": "https://github.com/f3-factory/fatfree-core/issues",
-                "source": "https://github.com/f3-factory/fatfree-core/tree/3.9.1"
+                "source": "https://github.com/f3-factory/fatfree-core/tree/3.9.2"
             },
             "funding": [
                 {
@@ -230,7 +230,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-08-09T10:27:39+00:00"
+            "time": "2025-12-02T00:44:50+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
