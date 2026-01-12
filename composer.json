@@ -14,6 +14,6 @@
     "sentry/sdk": "4.0.0"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "v3.88.2"
+    "friendsofphp/php-cs-fixer": "v3.92.5"
   }
 }
