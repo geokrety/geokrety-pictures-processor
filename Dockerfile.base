@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=php
-ARG BASE_TAG=8.2.8-apache-bullseye
+ARG BASE_TAG=8.4.18-apache-trixie
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 LABEL maintainer="GeoKrety Team <contact@geokrety.org>"
